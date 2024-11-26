@@ -42,9 +42,19 @@ const PortfolioAnalytics = () => {
         .limit(1);
       
       if (error) throw error;
+      
+      // Provide default values if no insights are found
+      if (!insights?.length) {
+        return {
+          content: { analysis: 'No AI insights available yet.' },
+          confidence: 0,
+          timestamp: new Date().toISOString()
+        };
+      }
+      
       return {
-        ...insights?.[0],
-        content: insights?.[0]?.content as unknown as AIInsightContent
+        ...insights[0],
+        content: insights[0]?.content as AIInsightContent || { analysis: 'Error loading AI insights.' }
       };
     }
   });
@@ -119,10 +129,10 @@ const PortfolioAnalytics = () => {
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm">{aiInsights.content.analysis}</p>
+                <p className="text-sm">{aiInsights.content?.analysis || 'No analysis available.'}</p>
               </div>
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Confidence: {(aiInsights.confidence * 100).toFixed(0)}%</span>
+                <span>Confidence: {((aiInsights.confidence || 0) * 100).toFixed(0)}%</span>
                 <span>Generated: {new Date(aiInsights.timestamp).toLocaleString()}</span>
               </div>
             </div>

@@ -14,17 +14,14 @@ serve(async (req) => {
     const { symbol } = await req.json()
     
     // Mock market data for development
-    const mockData = {
+    const data = Array.from({ length: 30 }, (_, i) => ({
+      timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
       price: Math.random() * 1000 + 100,
-      volume: Math.floor(Math.random() * 1000000),
-      marketCap: Math.random() * 1000000000,
-      volatility: Math.random() * 0.5,
-      sentiment: Math.random(),
-      timestamp: new Date().toISOString()
-    }
+      volume: Math.floor(Math.random() * 1000000)
+    }))
 
     return new Response(
-      JSON.stringify(mockData),
+      JSON.stringify(data),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
