@@ -12,15 +12,28 @@ serve(async (req) => {
   }
 
   try {
-    const { symbol } = await req.json()
+    const { type } = await req.json()
     
-    // Mock market data for now
+    // Mock market intelligence data for now
     const mockData = {
-      price: Math.random() * 1000 + 100,
-      volume: Math.floor(Math.random() * 10000),
-      high: Math.random() * 1000 + 200,
-      low: Math.random() * 1000,
-      timestamp: new Date().toISOString()
+      regime: {
+        current: 'Bullish',
+        probability: 75,
+        indicators: {
+          volatility: 0.15,
+          momentum: 0.8,
+          sentiment: 0.6
+        }
+      },
+      sentiment: {
+        overall: 0.7,
+        trend: 'Positive',
+        components: {
+          technical: 0.8,
+          fundamental: 0.6,
+          news: 0.7
+        }
+      }
     }
 
     return new Response(
@@ -28,10 +41,11 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
+    console.error('Error in market-data function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        status: 400,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
