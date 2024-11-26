@@ -2,6 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
+interface AIRecommendations {
+  suggestions: string[];
+}
+
 const RiskAnalysis = () => {
   const { data: riskData, isLoading } = useQuery({
     queryKey: ['risk-analysis'],
@@ -22,7 +26,10 @@ const RiskAnalysis = () => {
         .limit(7);
       
       if (error) throw error;
-      return riskMetrics;
+      return riskMetrics.map(metric => ({
+        ...metric,
+        aiRecommendations: metric.aiRecommendations as AIRecommendations
+      }));
     }
   });
 
@@ -43,7 +50,7 @@ const RiskAnalysis = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Asset Allocation</h3>
               <div className="space-y-2">
-                {latestRisk?.assetAllocation && Object.entries(latestRisk.assetAllocation).map(([asset, allocation]) => (
+                {latestRisk?.assetAllocation && Object.entries(latestRisk.assetAllocation as Record<string, number>).map(([asset, allocation]) => (
                   <div key={asset} className="flex justify-between">
                     <span>{asset}</span>
                     <span className="font-medium">{(Number(allocation) * 100).toFixed(1)}%</span>
@@ -55,7 +62,7 @@ const RiskAnalysis = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Sector Exposure</h3>
               <div className="space-y-2">
-                {latestRisk?.sectorExposure && Object.entries(latestRisk.sectorExposure).map(([sector, exposure]) => (
+                {latestRisk?.sectorExposure && Object.entries(latestRisk.sectorExposure as Record<string, number>).map(([sector, exposure]) => (
                   <div key={sector} className="flex justify-between">
                     <span>{sector}</span>
                     <span className="font-medium">{(Number(exposure) * 100).toFixed(1)}%</span>
@@ -69,7 +76,7 @@ const RiskAnalysis = () => {
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-4">AI Recommendations</h3>
               <div className="space-y-2">
-                {latestRisk.aiRecommendations.suggestions?.map((suggestion: string, index: number) => (
+                {latestRisk.aiRecommendations.suggestions?.map((suggestion, index) => (
                   <div key={index} className="p-3 bg-muted rounded-lg">
                     <p className="text-sm">{suggestion}</p>
                   </div>

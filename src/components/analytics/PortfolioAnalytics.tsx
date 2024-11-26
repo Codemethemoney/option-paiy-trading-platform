@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+
+interface AIInsightContent {
+  analysis: string;
+}
 
 const PortfolioAnalytics = () => {
-  const { toast } = useToast();
-
   const { data: analytics, isLoading: isLoadingAnalytics } = useQuery({
     queryKey: ['portfolio-analytics'],
     queryFn: async () => {
@@ -44,7 +45,10 @@ const PortfolioAnalytics = () => {
         .limit(1);
       
       if (error) throw error;
-      return insights?.[0];
+      return {
+        ...insights?.[0],
+        content: insights?.[0]?.content as AIInsightContent
+      };
     }
   });
 

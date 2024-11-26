@@ -2,6 +2,27 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
+interface MarketRegime {
+  current: string;
+  probability: number;
+  indicators: {
+    volatility: number;
+    momentum: number;
+    liquidity: number;
+    sentiment: number;
+  };
+}
+
+interface SentimentAnalysis {
+  overall: string;
+  components: {
+    news: number;
+    social: number;
+    technical: number;
+    fundamental: number;
+  };
+}
+
 const MarketIntelligence = () => {
   const { data: marketData, isLoading } = useQuery({
     queryKey: ['market-intelligence'],
@@ -14,8 +35,8 @@ const MarketIntelligence = () => {
       
       if (error) throw error;
       
-      return riskMetrics?.[0] || {
-        marketRegime: {
+      return {
+        marketRegime: (riskMetrics?.[0]?.marketRegime as MarketRegime) || {
           current: 'Unknown',
           probability: 0,
           indicators: {
@@ -25,7 +46,7 @@ const MarketIntelligence = () => {
             sentiment: 0
           }
         },
-        sentimentAnalysis: {
+        sentimentAnalysis: (riskMetrics?.[0]?.sentimentAnalysis as SentimentAnalysis) || {
           overall: 'Neutral',
           components: {
             news: 0,

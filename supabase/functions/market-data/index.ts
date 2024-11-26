@@ -6,44 +6,24 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { type, symbol } = await req.json()
+    const { symbol } = await req.json()
     
-    if (type === 'market-intelligence') {
-      // Mock market intelligence data
-      const mockData = {
-        regime: {
-          current: 'Bullish',
-          probability: 75
-        },
-        sentiment: {
-          overall: 'Positive',
-          trend: 'Upward'
-        }
-      }
-      return new Response(
-        JSON.stringify(mockData),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    } else if (symbol) {
-      // Mock market price data for a specific symbol
-      const mockPriceData = Array.from({ length: 30 }, (_, i) => ({
-        timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-        price: 50000 + Math.random() * 1000 - 500,
-        volume: Math.floor(Math.random() * 1000)
-      }))
-      return new Response(
-        JSON.stringify(mockPriceData),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    // Mock market data for development
+    const mockData = Array.from({ length: 30 }, (_, i) => ({
+      timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+      price: Math.random() * 100 + 100,
+      volume: Math.floor(Math.random() * 10000)
+    }))
 
-    throw new Error('Invalid request parameters')
+    return new Response(
+      JSON.stringify(mockData),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
   } catch (error) {
     console.error('Error in market-data function:', error)
     return new Response(
