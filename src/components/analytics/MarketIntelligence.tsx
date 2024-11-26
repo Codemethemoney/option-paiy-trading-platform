@@ -1,27 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-
-interface MarketRegime {
-  current: string;
-  probability: number;
-  indicators: {
-    volatility: number;
-    momentum: number;
-    liquidity: number;
-    sentiment: number;
-  };
-}
-
-interface SentimentAnalysis {
-  overall: string;
-  components: {
-    news: number;
-    social: number;
-    technical: number;
-    fundamental: number;
-  };
-}
+import { MarketRegime, SentimentAnalysis } from "@/types/analytics";
 
 const MarketIntelligence = () => {
   const { data: marketData, isLoading } = useQuery({
@@ -36,7 +16,7 @@ const MarketIntelligence = () => {
       if (error) throw error;
       
       return {
-        marketRegime: (riskMetrics?.[0]?.marketRegime as MarketRegime) || {
+        marketRegime: (riskMetrics?.[0]?.marketRegime as unknown as MarketRegime) || {
           current: 'Unknown',
           probability: 0,
           indicators: {
@@ -46,7 +26,7 @@ const MarketIntelligence = () => {
             sentiment: 0
           }
         },
-        sentimentAnalysis: (riskMetrics?.[0]?.sentimentAnalysis as SentimentAnalysis) || {
+        sentimentAnalysis: (riskMetrics?.[0]?.sentimentAnalysis as unknown as SentimentAnalysis) || {
           overall: 'Neutral',
           components: {
             news: 0,

@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-
-interface AIRecommendations {
-  suggestions: string[];
-}
+import { AIRecommendations } from "@/types/analytics";
 
 const RiskAnalysis = () => {
   const { data: riskData, isLoading } = useQuery({
@@ -28,7 +25,7 @@ const RiskAnalysis = () => {
       if (error) throw error;
       return riskMetrics.map(metric => ({
         ...metric,
-        aiRecommendations: metric.aiRecommendations as AIRecommendations
+        aiRecommendations: metric.aiRecommendations as unknown as AIRecommendations
       }));
     }
   });

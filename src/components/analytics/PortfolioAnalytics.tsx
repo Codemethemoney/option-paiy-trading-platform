@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-
-interface AIInsightContent {
-  analysis: string;
-}
+import { AIInsightContent, PortfolioMetrics } from "@/types/analytics";
 
 const PortfolioAnalytics = () => {
   const { data: analytics, isLoading: isLoadingAnalytics } = useQuery({
@@ -18,7 +15,7 @@ const PortfolioAnalytics = () => {
       
       if (error) throw error;
       
-      return riskMetrics?.[0] || {
+      return riskMetrics?.[0] as PortfolioMetrics || {
         portfolioValue: 0,
         valueAtRisk: 0,
         sharpeRatio: 0,
@@ -47,7 +44,7 @@ const PortfolioAnalytics = () => {
       if (error) throw error;
       return {
         ...insights?.[0],
-        content: insights?.[0]?.content as AIInsightContent
+        content: insights?.[0]?.content as unknown as AIInsightContent
       };
     }
   });

@@ -14,11 +14,14 @@ serve(async (req) => {
     const { symbol } = await req.json()
     
     // Mock market data for development
-    const mockData = Array.from({ length: 30 }, (_, i) => ({
-      timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-      price: Math.random() * 100 + 100,
-      volume: Math.floor(Math.random() * 10000)
-    }))
+    const mockData = {
+      price: Math.random() * 1000 + 100,
+      volume: Math.floor(Math.random() * 1000000),
+      marketCap: Math.random() * 1000000000,
+      volatility: Math.random() * 0.5,
+      sentiment: Math.random(),
+      timestamp: new Date().toISOString()
+    }
 
     return new Response(
       JSON.stringify(mockData),
