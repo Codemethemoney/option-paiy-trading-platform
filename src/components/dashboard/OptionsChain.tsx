@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
 
 const OptionsChain = ({ symbol }: { symbol: string }) => {
   const { data: options, isLoading } = useQuery({
@@ -12,7 +13,7 @@ const OptionsChain = ({ symbol }: { symbol: string }) => {
         .eq('underlyingSymbol', symbol);
       
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 

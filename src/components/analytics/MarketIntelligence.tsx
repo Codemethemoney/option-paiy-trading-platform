@@ -1,19 +1,44 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 
 const MarketIntelligence = () => {
   const { data: marketData, isLoading } = useQuery({
     queryKey: ['market-intelligence'],
     queryFn: async () => {
-      const response = await fetch('/api/functions/v1/market-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'market-intelligence' })
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch market intelligence');
-      return response.json();
+      try {
+        const response = await fetch('/api/functions/v1/market-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'market-intelligence' })
+        });
+        
+        if (!response.ok) {
+          // Return default data if API is not available
+          return {
+            regime: {
+              current: 'Unknown',
+              probability: 0
+            },
+            sentiment: {
+              overall: 'Neutral',
+              trend: 'Stable'
+            }
+          };
+        }
+        return response.json();
+      } catch (error) {
+        // Return default data on error
+        return {
+          regime: {
+            current: 'Unknown',
+            probability: 0
+          },
+          sentiment: {
+            overall: 'Neutral',
+            trend: 'Stable'
+          }
+        };
+      }
     }
   });
 

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const PortfolioAnalytics = () => {
   const { data: analytics, isLoading } = useQuery({
@@ -11,11 +10,20 @@ const PortfolioAnalytics = () => {
         .from('RiskMetric')
         .select('*')
         .order('timestamp', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
       
       if (error) throw error;
-      return riskMetrics;
+      
+      // Return default values if no data exists
+      return riskMetrics?.[0] || {
+        portfolioValue: 0,
+        valueAtRisk: 0,
+        sharpeRatio: 0,
+        delta: 0,
+        gamma: 0,
+        theta: 0,
+        vega: 0
+      };
     }
   });
 

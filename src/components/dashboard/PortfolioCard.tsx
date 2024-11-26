@@ -8,11 +8,16 @@ const PortfolioCard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('Account')
-        .select('*')
-        .single();
+        .select('*');
       
       if (error) throw error;
-      return data;
+      
+      // Return default values if no data exists
+      return data?.[0] || {
+        balance: 0,
+        currency: 'USD',
+        type: 'TRADING'
+      };
     }
   });
 
