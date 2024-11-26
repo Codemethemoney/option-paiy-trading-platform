@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,43 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { OrderEntry } from '@/types/trading';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+
+interface OrderEntry {
+  basic: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    type: 'market' | 'limit' | 'stop' | 'stop-limit';
+    quantity: number;
+    price?: number;
+    stopPrice?: number;
+  };
+  advanced: {
+    timeInForce: 'day' | 'gtc' | 'ioc' | 'fok';
+    allowOutsideRth: boolean;
+    discretionaryAmount?: number;
+    minQuantity?: number;
+    displayQuantity?: number;
+    preventPostOnly?: boolean;
+  };
+  riskManagement: {
+    takeProfit?: {
+      price: number;
+      type: 'limit' | 'market';
+    };
+    stopLoss?: {
+      price: number;
+      type: 'stop' | 'stop-limit' | 'trailing';
+      trailingAmount?: number;
+    };
+    maxLoss?: number;
+    positionSizing?: {
+      riskPerTrade: number;
+      maxPositionSize: number;
+    }
+  };
+}
 
 const AdvancedOrderEntry = () => {
   const { toast } = useToast();
@@ -18,54 +52,58 @@ const AdvancedOrderEntry = () => {
       side: 'buy',
       type: 'market',
       quantity: 0,
-      price: undefined,
-      stopPrice: undefined,
     },
     advanced: {
       timeInForce: 'day',
       allowOutsideRth: false,
-      minQuantity: undefined,
-      displayQuantity: undefined,
     },
     riskManagement: {}
   });
 
-  const { data: marketData } = useQuery({
-    queryKey: ['market-data', orderDetails.basic.symbol],
+  // AI Trading Assistant Query
+  const { data: aiAnalysis } = useQuery({
+    queryKey: ['ai-analysis', orderDetails.basic.symbol],
     queryFn: async () => {
-      const response = await fetch('/api/functions/v1/market-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol: orderDetails.basic.symbol })
+      const response = await supabase.functions.invoke('ai-trading-v2', {
+        body: {
+          action: 'price-prediction',
+          payload: {
+            symbol: orderDetails.basic.symbol,
+            timeframe: '1h'
+          }
+        }
       });
-      if (!response.ok) throw new Error('Failed to fetch market data');
-      return response.json();
+
+      if (response.error) throw response.error;
+      return response.data;
     },
     enabled: !!orderDetails.basic.symbol
   });
 
   const handleSubmitOrder = async () => {
     try {
-      const { data, error } = await supabase
-        .from('Transaction')
-        .insert({
-          type: 'TRADE',
-          amount: orderDetails.basic.quantity * (marketData?.price || 0),
-          currency: orderDetails.basic.symbol.split('/')[1] || 'USD',
-          status: 'PENDING',
-          description: `${orderDetails.basic.side.toUpperCase()} ${orderDetails.basic.quantity} ${orderDetails.basic.symbol}`
-        });
+      const response = await supabase.functions.invoke('trading-v2', {
+        body: {
+          action: 'submit',
+          payload: {
+            order: {
+              ...orderDetails.basic,
+              userId: (await supabase.auth.getUser()).data.user?.id
+            }
+          }
+        }
+      });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
 
       toast({
         title: "Order Submitted",
         description: "Your order has been successfully submitted.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to submit order. Please try again.",
+        description: error.message || "Failed to submit order. Please try again.",
         variant: "destructive",
       });
     }
@@ -94,6 +132,11 @@ const AdvancedOrderEntry = () => {
                   basic: { ...prev.basic, symbol: e.target.value }
                 }))}
               />
+              {aiAnalysis && (
+                <div className="text-sm text-muted-foreground">
+                  AI Prediction: {aiAnalysis.prediction}
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -111,6 +154,27 @@ const AdvancedOrderEntry = () => {
                 <SelectContent>
                   <SelectItem value="buy">Buy</SelectItem>
                   <SelectItem value="sell">Sell</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label>Type</label>
+              <Select
+                value={orderDetails.basic.type}
+                onValueChange={(value: 'market' | 'limit' | 'stop' | 'stop-limit') => setOrderDetails(prev => ({
+                  ...prev,
+                  basic: { ...prev.basic, type: value }
+                }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="market">Market</SelectItem>
+                  <SelectItem value="limit">Limit</SelectItem>
+                  <SelectItem value="stop">Stop</SelectItem>
+                  <SelectItem value="stop-limit">Stop Limit</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -173,7 +237,6 @@ const AdvancedOrderEntry = () => {
                   riskManagement: {
                     ...prev.riskManagement,
                     takeProfit: {
-                      ...prev.riskManagement.takeProfit,
                       price: Number(e.target.value),
                       type: 'limit'
                     }
@@ -192,7 +255,6 @@ const AdvancedOrderEntry = () => {
                   riskManagement: {
                     ...prev.riskManagement,
                     stopLoss: {
-                      ...prev.riskManagement.stopLoss,
                       price: Number(e.target.value),
                       type: 'stop'
                     }
