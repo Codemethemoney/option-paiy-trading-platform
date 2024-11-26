@@ -1,6 +1,6 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@4.17.0"
+import "https://deno.land/x/xhr@0.1.0/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,10 +10,6 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseKey)
-
-const openai = new OpenAIApi(new Configuration({
-  apiKey: Deno.env.get('OPENAI_API_KEY')
-}))
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -32,21 +28,30 @@ serve(async (req) => {
       .limit(100)
 
     // Analyze sentiment using OpenAI
-    const sentimentResponse = await openai.createChatCompletion({
-      model: "gpt-4o",
-      messages: [{
-        role: "system",
-        content: "You are a financial analyst. Analyze the market data and provide trading signals."
-      }, {
-        role: "user",
-        content: `Analyze this market data for ${symbol}: ${JSON.stringify(marketData)}`
-      }]
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{
+          role: "system",
+          content: "You are a financial analyst. Analyze the market data and provide trading signals."
+        }, {
+          role: "user",
+          content: `Analyze this market data for ${symbol}: ${JSON.stringify(marketData)}`
+        }]
+      }),
     })
 
+    const aiResponse = await response.json()
+    
     const analysis = {
       timestamp: new Date().toISOString(),
       symbol,
-      sentiment: sentimentResponse.data.choices[0].message?.content,
+      sentiment: aiResponse.choices[0].message?.content,
       signals: generateTradingSignals(marketData.data),
       riskScore: calculateRiskScore(marketData.data)
     }
