@@ -1,19 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { supabase } from "@/integrations/supabase/client";
 
 const MarketAnalysis = ({ symbol }: { symbol: string }) => {
   const { data: marketData, isLoading } = useQuery({
     queryKey: ['market-data', symbol],
     queryFn: async () => {
-      const response = await fetch('/api/functions/v1/market-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol })
+      const { data, error } = await supabase.functions.invoke('market-data', {
+        body: { symbol }
       });
       
-      if (!response.ok) throw new Error('Failed to fetch market data');
-      return response.json();
+      if (error) throw error;
+      return data;
     }
   });
 
