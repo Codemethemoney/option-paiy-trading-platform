@@ -46,15 +46,25 @@ const PortfolioAnalytics = () => {
       // Provide default values if no insights are found
       if (!insights?.length) {
         return {
-          content: { analysis: 'No AI insights available yet.' },
+          content: { analysis: 'No AI insights available yet.' } as AIInsightContent,
           confidence: 0,
           timestamp: new Date().toISOString()
         };
       }
       
+      // Ensure content is properly typed as AIInsightContent
+      const content = insights[0].content as unknown;
+      if (typeof content === 'object' && content !== null && 'analysis' in content) {
+        return {
+          ...insights[0],
+          content: content as AIInsightContent
+        };
+      }
+      
+      // Fallback if content is not in the expected format
       return {
         ...insights[0],
-        content: insights[0]?.content as AIInsightContent || { analysis: 'Error loading AI insights.' }
+        content: { analysis: 'Error loading AI insights.' } as AIInsightContent
       };
     }
   });
