@@ -12,24 +12,27 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
+    console.log('Received request:', req.method)
     const { action, payload } = await req.json()
+    console.log('Action:', action, 'Payload:', payload)
 
     switch (action) {
       case 'submit':
-        return handleOrderSubmission(payload)
+        return await handleOrderSubmission(payload)
       case 'modify':
-        return handleOrderModification(payload)
+        return await handleOrderModification(payload)
       case 'cancel':
-        return handleOrderCancellation(payload)
+        return await handleOrderCancellation(payload)
       case 'strategy':
-        return handleStrategyExecution(payload)
+        return await handleStrategyExecution(payload)
       case 'positions':
-        return handlePositionManagement(payload)
+        return await handlePositionManagement(payload)
       default:
         throw new Error('Invalid action')
     }
@@ -47,67 +50,85 @@ serve(async (req) => {
 
 async function handleOrderSubmission(payload: any) {
   const { order } = payload
+  console.log('Processing order submission:', order)
   
-  // Store order in database
-  const { data, error } = await supabase
-    .from('Transaction')
-    .insert({
-      userId: order.userId,
-      type: 'TRADE',
-      amount: order.quantity * order.price,
-      currency: order.symbol.split('/')[1] || 'USD',
-      status: 'PENDING',
-      description: `${order.side} ${order.quantity} ${order.symbol} @ ${order.price}`
-    })
-    .select()
-    .single()
+  try {
+    // Store order in database
+    const { data, error } = await supabase
+      .from('Transaction')
+      .insert({
+        userId: order.userId,
+        type: 'TRADE',
+        amount: order.quantity,
+        currency: order.symbol.split('/')[1] || 'USD',
+        status: 'PENDING',
+        description: `${order.side} ${order.quantity} ${order.symbol}`
+      })
+      .select()
+      .single()
 
-  if (error) throw error
+    if (error) throw error
 
-  return new Response(
-    JSON.stringify(data),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+    return new Response(
+      JSON.stringify(data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Error submitting order:', error)
+    throw error
+  }
 }
 
 async function handleOrderModification(payload: any) {
   const { orderId, updates } = payload
+  console.log('Processing order modification:', orderId, updates)
   
-  const { data, error } = await supabase
-    .from('Transaction')
-    .update(updates)
-    .eq('id', orderId)
-    .select()
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('Transaction')
+      .update(updates)
+      .eq('id', orderId)
+      .select()
+      .single()
 
-  if (error) throw error
+    if (error) throw error
 
-  return new Response(
-    JSON.stringify(data),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+    return new Response(
+      JSON.stringify(data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Error modifying order:', error)
+    throw error
+  }
 }
 
 async function handleOrderCancellation(payload: any) {
   const { orderId } = payload
+  console.log('Processing order cancellation:', orderId)
   
-  const { data, error } = await supabase
-    .from('Transaction')
-    .update({ status: 'CANCELLED' })
-    .eq('id', orderId)
-    .select()
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('Transaction')
+      .update({ status: 'CANCELLED' })
+      .eq('id', orderId)
+      .select()
+      .single()
 
-  if (error) throw error
+    if (error) throw error
 
-  return new Response(
-    JSON.stringify(data),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+    return new Response(
+      JSON.stringify(data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Error cancelling order:', error)
+    throw error
+  }
 }
 
 async function handleStrategyExecution(payload: any) {
-  // Mock strategy execution response
+  console.log('Processing strategy execution:', payload)
   const response = {
     strategyId: crypto.randomUUID(),
     status: 'ACTIVE',
@@ -126,7 +147,7 @@ async function handleStrategyExecution(payload: any) {
 }
 
 async function handlePositionManagement(payload: any) {
-  // Mock position management response
+  console.log('Processing position management:', payload)
   const response = {
     positions: [],
     exposure: {
