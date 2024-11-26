@@ -5,6 +5,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts"
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
@@ -12,7 +13,10 @@ const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    })
   }
 
   try {
@@ -20,25 +24,47 @@ serve(async (req) => {
     const { action, payload } = await req.json()
     console.log('Action:', action, 'Payload:', payload)
 
+    let response
     switch (action) {
       case 'price-prediction':
-        return handlePricePrediction(payload)
+        response = await handlePricePrediction(payload)
+        break
       case 'strategy-optimization':
-        return handleStrategyOptimization(payload)
+        response = await handleStrategyOptimization(payload)
+        break
       case 'risk-analysis':
-        return handleRiskAnalysis(payload)
+        response = await handleRiskAnalysis(payload)
+        break
       case 'sentiment':
-        return handleMarketSentiment(payload)
+        response = await handleMarketSentiment(payload)
+        break
       default:
         throw new Error('Invalid action')
     }
+
+    return new Response(
+      JSON.stringify(response),
+      { 
+        status: 200,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        } 
+      }
+    )
   } catch (error) {
     console.error('Error in ai-trading-v2 function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'An unexpected error occurred',
+        details: error.toString()
+      }),
       { 
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        } 
       }
     )
   }

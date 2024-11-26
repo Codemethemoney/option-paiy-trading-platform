@@ -5,6 +5,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts"
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -14,7 +15,10 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    })
   }
 
   try {
@@ -22,27 +26,50 @@ serve(async (req) => {
     const { action, payload } = await req.json()
     console.log('Action:', action, 'Payload:', payload)
 
+    let response
     switch (action) {
       case 'submit':
-        return await handleOrderSubmission(payload)
+        response = await handleOrderSubmission(payload)
+        break
       case 'modify':
-        return await handleOrderModification(payload)
+        response = await handleOrderModification(payload)
+        break
       case 'cancel':
-        return await handleOrderCancellation(payload)
+        response = await handleOrderCancellation(payload)
+        break
       case 'strategy':
-        return await handleStrategyExecution(payload)
+        response = await handleStrategyExecution(payload)
+        break
       case 'positions':
-        return await handlePositionManagement(payload)
+        response = await handlePositionManagement(payload)
+        break
       default:
         throw new Error('Invalid action')
     }
+
+    return new Response(
+      JSON.stringify(response),
+      { 
+        status: 200,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        } 
+      }
+    )
   } catch (error) {
     console.error('Error in trading-v2 function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'An unexpected error occurred',
+        details: error.toString()
+      }),
       { 
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        } 
       }
     )
   }
