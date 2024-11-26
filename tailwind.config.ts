@@ -24,7 +24,11 @@ export default {
     },
     extend: {
       colors: {
-        // Primary Palette
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
           start: "#4F46E5",
           end: "#6366F1",
@@ -85,7 +89,6 @@ export default {
             end: "#DC2626"
           }
         },
-        // Accent Colors
         accent: {
           blue: {
             start: "#3B82F6",
@@ -108,7 +111,6 @@ export default {
             end: "#FB7185"
           }
         },
-        // Text Colors
         text: {
           primary: "#111827",
           secondary: "#374151",
