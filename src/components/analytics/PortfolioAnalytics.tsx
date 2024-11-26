@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const PortfolioAnalytics = () => {
-  const { data: analytics, isLoading } = useQuery({
+  const { toast } = useToast();
+
+  const { data: analytics, isLoading: isLoadingAnalytics } = useQuery({
     queryKey: ['portfolio-analytics'],
     queryFn: async () => {
       const { data: riskMetrics, error } = await supabase
@@ -14,7 +17,6 @@ const PortfolioAnalytics = () => {
       
       if (error) throw error;
       
-      // Return default values if no data exists
       return riskMetrics?.[0] || {
         portfolioValue: 0,
         valueAtRisk: 0,
@@ -22,12 +24,31 @@ const PortfolioAnalytics = () => {
         delta: 0,
         gamma: 0,
         theta: 0,
-        vega: 0
+        vega: 0,
+        beta: 0,
+        alpha: 0,
+        informationRatio: 0,
+        sortinoRatio: 0,
+        maxDrawdown: 0
       };
     }
   });
 
-  if (isLoading) {
+  const { data: aiInsights, isLoading: isLoadingInsights } = useQuery({
+    queryKey: ['ai-insights'],
+    queryFn: async () => {
+      const { data: insights, error } = await supabase
+        .from('AIInsight')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(1);
+      
+      if (error) throw error;
+      return insights?.[0];
+    }
+  });
+
+  if (isLoadingAnalytics || isLoadingInsights) {
     return <div>Loading analytics...</div>;
   }
 
@@ -50,6 +71,14 @@ const PortfolioAnalytics = () => {
             <div className="flex justify-between">
               <span>Sharpe Ratio</span>
               <span className="font-semibold">{analytics?.sharpeRatio?.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Information Ratio</span>
+              <span className="font-semibold">{analytics?.informationRatio?.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Sortino Ratio</span>
+              <span className="font-semibold">{analytics?.sortinoRatio?.toFixed(2)}</span>
             </div>
           </div>
         </CardContent>
@@ -80,6 +109,25 @@ const PortfolioAnalytics = () => {
           </div>
         </CardContent>
       </Card>
+
+      {aiInsights && (
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>AI Insights</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm">{aiInsights.content.analysis}</p>
+              </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Confidence: {(aiInsights.confidence * 100).toFixed(0)}%</span>
+                <span>Generated: {new Date(aiInsights.timestamp).toLocaleString()}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

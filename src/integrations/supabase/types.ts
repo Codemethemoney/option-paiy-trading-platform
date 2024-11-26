@@ -50,6 +50,44 @@ export type Database = {
           },
         ]
       }
+      AIInsight: {
+        Row: {
+          confidence: number | null
+          content: Json
+          id: string
+          metadata: Json | null
+          timestamp: string | null
+          type: string
+          userId: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          content: Json
+          id?: string
+          metadata?: Json | null
+          timestamp?: string | null
+          type: string
+          userId?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          content?: Json
+          id?: string
+          metadata?: Json | null
+          timestamp?: string | null
+          type?: string
+          userId?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "AIInsight_userId_fkey"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ApiKey: {
         Row: {
           createdAt: string | null
@@ -222,12 +260,23 @@ export type Database = {
       }
       RiskMetric: {
         Row: {
+          aiRecommendations: Json | null
+          alpha: number | null
+          assetAllocation: Json | null
+          beta: number | null
+          correlationMatrix: Json | null
           delta: number | null
           gamma: number | null
           id: string
+          informationRatio: number | null
+          marketRegime: Json | null
+          maxDrawdown: number | null
           portfolioValue: number
           rho: number | null
+          sectorExposure: Json | null
+          sentimentAnalysis: Json | null
           sharpeRatio: number | null
+          sortinoRatio: number | null
           theta: number | null
           timestamp: string | null
           userId: string | null
@@ -235,12 +284,23 @@ export type Database = {
           vega: number | null
         }
         Insert: {
+          aiRecommendations?: Json | null
+          alpha?: number | null
+          assetAllocation?: Json | null
+          beta?: number | null
+          correlationMatrix?: Json | null
           delta?: number | null
           gamma?: number | null
           id?: string
+          informationRatio?: number | null
+          marketRegime?: Json | null
+          maxDrawdown?: number | null
           portfolioValue: number
           rho?: number | null
+          sectorExposure?: Json | null
+          sentimentAnalysis?: Json | null
           sharpeRatio?: number | null
+          sortinoRatio?: number | null
           theta?: number | null
           timestamp?: string | null
           userId?: string | null
@@ -248,12 +308,23 @@ export type Database = {
           vega?: number | null
         }
         Update: {
+          aiRecommendations?: Json | null
+          alpha?: number | null
+          assetAllocation?: Json | null
+          beta?: number | null
+          correlationMatrix?: Json | null
           delta?: number | null
           gamma?: number | null
           id?: string
+          informationRatio?: number | null
+          marketRegime?: Json | null
+          maxDrawdown?: number | null
           portfolioValue?: number
           rho?: number | null
+          sectorExposure?: Json | null
+          sentimentAnalysis?: Json | null
           sharpeRatio?: number | null
+          sortinoRatio?: number | null
           theta?: number | null
           timestamp?: string | null
           userId?: string | null

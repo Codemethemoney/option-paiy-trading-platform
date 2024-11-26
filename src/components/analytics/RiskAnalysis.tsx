@@ -8,7 +8,16 @@ const RiskAnalysis = () => {
     queryFn: async () => {
       const { data: riskMetrics, error } = await supabase
         .from('RiskMetric')
-        .select('*')
+        .select(`
+          id,
+          timestamp,
+          valueAtRisk,
+          delta,
+          assetAllocation,
+          sectorExposure,
+          correlationMatrix,
+          aiRecommendations
+        `)
         .order('timestamp', { ascending: false })
         .limit(7);
       
@@ -21,17 +30,67 @@ const RiskAnalysis = () => {
     return <div>Loading risk analysis...</div>;
   }
 
+  const latestRisk = riskData?.[0];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Risk Analysis</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Risk Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Asset Allocation</h3>
+              <div className="space-y-2">
+                {latestRisk?.assetAllocation && Object.entries(latestRisk.assetAllocation).map(([asset, allocation]) => (
+                  <div key={asset} className="flex justify-between">
+                    <span>{asset}</span>
+                    <span className="font-medium">{(Number(allocation) * 100).toFixed(1)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Sector Exposure</h3>
+              <div className="space-y-2">
+                {latestRisk?.sectorExposure && Object.entries(latestRisk.sectorExposure).map(([sector, exposure]) => (
+                  <div key={sector} className="flex justify-between">
+                    <span>{sector}</span>
+                    <span className="font-medium">{(Number(exposure) * 100).toFixed(1)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {latestRisk?.aiRecommendations && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-4">AI Recommendations</h3>
+              <div className="space-y-2">
+                {latestRisk.aiRecommendations.suggestions?.map((suggestion: string, index: number) => (
+                  <div key={index} className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm">{suggestion}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Historical Risk Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {riskData?.map((metric) => (
               <div key={metric.id} className="p-4 border rounded-lg">
-                <div className="text-sm text-gray-500">{new Date(metric.timestamp).toLocaleDateString()}</div>
+                <div className="text-sm text-gray-500">
+                  {new Date(metric.timestamp).toLocaleDateString()}
+                </div>
                 <div className="mt-2 space-y-2">
                   <div className="flex justify-between">
                     <span>VaR</span>
@@ -45,9 +104,9 @@ const RiskAnalysis = () => {
               </div>
             ))}
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
