@@ -88,6 +88,97 @@ export type Database = {
           },
         ]
       }
+      KYC: {
+        Row: {
+          createdAt: string | null
+          documentNumber: string | null
+          documentType: Database["public"]["Enums"]["DocumentType"] | null
+          id: string
+          riskScore: number | null
+          status: Database["public"]["Enums"]["KYCStatus"] | null
+          updatedAt: string | null
+          userId: string | null
+          verificationScore: number | null
+        }
+        Insert: {
+          createdAt?: string | null
+          documentNumber?: string | null
+          documentType?: Database["public"]["Enums"]["DocumentType"] | null
+          id?: string
+          riskScore?: number | null
+          status?: Database["public"]["Enums"]["KYCStatus"] | null
+          updatedAt?: string | null
+          userId?: string | null
+          verificationScore?: number | null
+        }
+        Update: {
+          createdAt?: string | null
+          documentNumber?: string | null
+          documentType?: Database["public"]["Enums"]["DocumentType"] | null
+          id?: string
+          riskScore?: number | null
+          status?: Database["public"]["Enums"]["KYCStatus"] | null
+          updatedAt?: string | null
+          userId?: string | null
+          verificationScore?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "KYC_userId_fkey"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Option: {
+        Row: {
+          createdAt: string | null
+          expiration: string
+          id: string
+          premium: number
+          status: Database["public"]["Enums"]["OptionStatus"] | null
+          strike: number
+          type: Database["public"]["Enums"]["OptionType"]
+          underlyingSymbol: string
+          updatedAt: string | null
+          userId: string | null
+        }
+        Insert: {
+          createdAt?: string | null
+          expiration: string
+          id?: string
+          premium: number
+          status?: Database["public"]["Enums"]["OptionStatus"] | null
+          strike: number
+          type: Database["public"]["Enums"]["OptionType"]
+          underlyingSymbol: string
+          updatedAt?: string | null
+          userId?: string | null
+        }
+        Update: {
+          createdAt?: string | null
+          expiration?: string
+          id?: string
+          premium?: number
+          status?: Database["public"]["Enums"]["OptionStatus"] | null
+          strike?: number
+          type?: Database["public"]["Enums"]["OptionType"]
+          underlyingSymbol?: string
+          updatedAt?: string | null
+          userId?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Option_userId_fkey"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Profile: {
         Row: {
           address: string | null
@@ -124,6 +215,56 @@ export type Database = {
             foreignKeyName: "Profile_userId_fkey"
             columns: ["userId"]
             isOneToOne: true
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      RiskMetric: {
+        Row: {
+          delta: number | null
+          gamma: number | null
+          id: string
+          portfolioValue: number
+          rho: number | null
+          sharpeRatio: number | null
+          theta: number | null
+          timestamp: string | null
+          userId: string | null
+          valueAtRisk: number
+          vega: number | null
+        }
+        Insert: {
+          delta?: number | null
+          gamma?: number | null
+          id?: string
+          portfolioValue: number
+          rho?: number | null
+          sharpeRatio?: number | null
+          theta?: number | null
+          timestamp?: string | null
+          userId?: string | null
+          valueAtRisk: number
+          vega?: number | null
+        }
+        Update: {
+          delta?: number | null
+          gamma?: number | null
+          id?: string
+          portfolioValue?: number
+          rho?: number | null
+          sharpeRatio?: number | null
+          theta?: number | null
+          timestamp?: string | null
+          userId?: string | null
+          valueAtRisk?: number
+          vega?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "RiskMetric_userId_fkey"
+            columns: ["userId"]
+            isOneToOne: false
             referencedRelation: "User"
             referencedColumns: ["id"]
           },
@@ -220,6 +361,10 @@ export type Database = {
     Enums: {
       AccountStatus: "ACTIVE" | "SUSPENDED" | "CLOSED"
       AccountType: "TRADING" | "WALLET" | "SAVINGS"
+      DocumentType: "PASSPORT" | "DRIVING_LICENSE" | "NATIONAL_ID"
+      KYCStatus: "PENDING" | "APPROVED" | "REJECTED"
+      OptionStatus: "ACTIVE" | "EXPIRED" | "EXERCISED"
+      OptionType: "CALL" | "PUT"
       TransactionStatus: "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED"
       TransactionType: "DEPOSIT" | "WITHDRAWAL" | "TRANSFER" | "TRADE"
     }

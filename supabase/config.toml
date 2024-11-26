@@ -30,3 +30,11 @@ verify_jwt = true
 [[functions]]
 name = "trading"
 verify_jwt = true
+
+[[functions]]
+name = "monitoring"
+verify_jwt = true
+
+[[functions]]
+name = "backup"
+verify_jwt = true
