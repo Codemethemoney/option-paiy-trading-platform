@@ -19,6 +19,23 @@
     --animation-duration-slowest: 1000ms;
   }
 
+  /* Form Field Animations */
+  .form-field {
+    @apply transition-all duration-[var(--animation-duration-normal)] ease-[var(--animation-timing-default)];
+  }
+
+  .form-field.validating {
+    @apply border-warning-start animate-pulse;
+  }
+
+  .form-field.valid {
+    @apply border-success-start;
+  }
+
+  .form-field.error {
+    @apply border-danger-start animate-shake;
+  }
+
   /* Interactive Animations */
   .hover-scale {
     @apply transition-transform duration-[var(--animation-duration-fast)] ease-[var(--animation-timing-default)];
@@ -34,63 +51,50 @@
   .focus-ring {
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-end focus-visible:ring-opacity-40;
   }
-
-  /* Border Widths */
-  .border-thin {
-    @apply border;
-  }
-  .border-medium {
-    @apply border-2;
-  }
-  .border-thick {
-    @apply border-4;
-  }
 }
 
 @layer components {
-  /* Background Gradients */
-  .bg-gradient-primary {
-    @apply bg-gradient-to-r from-primary-start to-primary-end;
-  }
-  .bg-gradient-secondary {
-    @apply bg-gradient-to-r from-secondary-start to-secondary-end;
-  }
-  .bg-gradient-success {
-    @apply bg-gradient-to-r from-success-start to-success-end;
-  }
-  .bg-gradient-warning {
-    @apply bg-gradient-to-r from-warning-start to-warning-end;
-  }
-  .bg-gradient-danger {
-    @apply bg-gradient-to-r from-danger-start to-danger-end;
+  /* Authentication Forms */
+  .auth-container {
+    @apply min-h-screen flex items-center justify-center p-4;
+    background: linear-gradient(
+      45deg,
+      rgba(79, 70, 229, 0.1) 0%,
+      rgba(236, 72, 153, 0.1) 100%
+    );
   }
 
-  /* Typography */
-  .text-display {
-    @apply font-primary text-display font-black;
+  .auth-form {
+    @apply w-full max-w-md space-y-8 p-8 bg-white rounded-lg shadow-level2;
   }
-  .text-h1 {
-    @apply font-primary text-h1 font-bold;
+
+  /* Form Elements */
+  .form-group {
+    @apply space-y-2;
   }
-  .text-h2 {
-    @apply font-primary text-h2 font-bold;
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700;
   }
-  .text-h3 {
-    @apply font-primary text-h3 font-semibold;
+
+  .form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary-end focus:border-transparent;
   }
-  .text-h4 {
-    @apply font-primary text-h4 font-semibold;
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .auth-form {
+      @apply p-4;
+    }
+
+    .form-input {
+      @apply min-h-[44px];
+    }
   }
-  .text-h5 {
-    @apply font-primary text-h5 font-medium;
-  }
-  .text-body {
-    @apply font-primary text-body font-regular;
-  }
-  .text-small {
-    @apply font-primary text-small font-regular;
-  }
-  .text-tiny {
-    @apply font-primary text-tiny font-regular;
-  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
