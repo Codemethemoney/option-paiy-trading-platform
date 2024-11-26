@@ -10,12 +10,15 @@ const corsHeaders = {
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
+    console.log('Received request:', req.method)
     const { action, payload } = await req.json()
+    console.log('Action:', action, 'Payload:', payload)
 
     switch (action) {
       case 'price-prediction':
@@ -43,40 +46,50 @@ serve(async (req) => {
 
 async function handlePricePrediction(payload: any) {
   const { symbol, timeframe } = payload
+  console.log('Processing price prediction for:', symbol, timeframe)
 
-  // Use GPT-4 for price prediction
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a financial analyst specialized in price prediction.'
-        },
-        {
-          role: 'user',
-          content: `Analyze the price movement for ${symbol} in the ${timeframe} timeframe and provide a prediction.`
-        }
-      ]
+  try {
+    // Use GPT-4 for price prediction
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a financial analyst specialized in price prediction.'
+          },
+          {
+            role: 'user',
+            content: `Analyze the price movement for ${symbol} in the ${timeframe} timeframe and provide a prediction.`
+          }
+        ]
+      })
     })
-  })
 
-  const aiResponse = await response.json()
-  const prediction = aiResponse.choices[0].message.content
+    if (!response.ok) {
+      throw new Error('Failed to get AI prediction')
+    }
 
-  return new Response(
-    JSON.stringify({ prediction }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+    const aiResponse = await response.json()
+    const prediction = aiResponse.choices[0].message.content
+
+    return new Response(
+      JSON.stringify({ prediction }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Error in price prediction:', error)
+    throw error
+  }
 }
 
 async function handleStrategyOptimization(payload: any) {
-  // Mock strategy optimization response
+  console.log('Processing strategy optimization:', payload)
   const response = {
     optimizedParameters: {
       entryThreshold: 0.5,
@@ -99,7 +112,7 @@ async function handleStrategyOptimization(payload: any) {
 }
 
 async function handleRiskAnalysis(payload: any) {
-  // Mock risk analysis response
+  console.log('Processing risk analysis:', payload)
   const response = {
     riskScore: 0.65,
     factors: {
@@ -122,34 +135,43 @@ async function handleRiskAnalysis(payload: any) {
 
 async function handleMarketSentiment(payload: any) {
   const { symbol, sources } = payload
+  console.log('Processing market sentiment for:', symbol, sources)
 
-  // Use GPT-4 for sentiment analysis
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a market sentiment analyzer.'
-        },
-        {
-          role: 'user',
-          content: `Analyze the market sentiment for ${symbol} considering ${sources.join(', ')}.`
-        }
-      ]
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a market sentiment analyzer.'
+          },
+          {
+            role: 'user',
+            content: `Analyze the market sentiment for ${symbol} considering ${sources?.join(', ') || 'all available sources'}.`
+          }
+        ]
+      })
     })
-  })
 
-  const aiResponse = await response.json()
-  const sentiment = aiResponse.choices[0].message.content
+    if (!response.ok) {
+      throw new Error('Failed to get sentiment analysis')
+    }
 
-  return new Response(
-    JSON.stringify({ sentiment }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+    const aiResponse = await response.json()
+    const sentiment = aiResponse.choices[0].message.content
+
+    return new Response(
+      JSON.stringify({ sentiment }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Error in sentiment analysis:', error)
+    throw error
+  }
 }
