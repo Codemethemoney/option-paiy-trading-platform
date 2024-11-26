@@ -26,6 +26,10 @@ serve(async (req) => {
     const { action, payload } = await req.json()
     console.log('Action:', action, 'Payload:', payload)
 
+    if (!payload || typeof payload !== 'object') {
+      throw new Error('Invalid payload format')
+    }
+
     let response
     switch (action) {
       case 'submit':

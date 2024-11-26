@@ -24,6 +24,10 @@ serve(async (req) => {
     const { action, payload } = await req.json()
     console.log('Action:', action, 'Payload:', payload)
 
+    if (!payload || typeof payload !== 'object') {
+      throw new Error('Invalid payload format')
+    }
+
     let response
     switch (action) {
       case 'price-prediction':
@@ -74,6 +78,10 @@ async function handlePricePrediction(payload: any) {
   const { symbol, timeframe } = payload
   console.log('Processing price prediction for:', symbol, timeframe)
 
+  if (!symbol || !timeframe) {
+    throw new Error('Missing required fields: symbol and timeframe')
+  }
+
   try {
     // Use GPT-4 for price prediction
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -83,7 +91,7 @@ async function handlePricePrediction(payload: any) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -98,16 +106,25 @@ async function handlePricePrediction(payload: any) {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to get AI prediction')
+      const errorData = await response.json().catch(() => ({}))
+      console.error('OpenAI API error:', errorData)
+      throw new Error('Failed to get AI prediction: ' + (errorData.error?.message || response.statusText))
     }
 
     const aiResponse = await response.json()
-    const prediction = aiResponse.choices[0].message.content
+    if (!aiResponse.choices?.[0]?.message?.content) {
+      throw new Error('Invalid AI response format')
+    }
 
-    return new Response(
-      JSON.stringify({ prediction }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return {
+      prediction: aiResponse.choices[0].message.content,
+      timestamp: new Date().toISOString(),
+      metadata: {
+        model: 'gpt-4o-mini',
+        symbol,
+        timeframe
+      }
+    }
   } catch (error) {
     console.error('Error in price prediction:', error)
     throw error
